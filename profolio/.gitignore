@@ -44,3 +44,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+google-services.json
+GoogleService-Info.plist
+firebase.json
+
+.env
+
+
