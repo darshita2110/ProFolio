@@ -6,14 +6,8 @@ import 'package:profolio/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await FirebaseConfig.initialize();
-  
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerWidget {
@@ -21,12 +15,12 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(appRouterProvider);
+    final goRouter = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'ProFolio - Resume Builder',
+      title: 'ProFolio',
       theme: AppTheme.lightTheme,
-      routerConfig: router,
+      routerConfig: goRouter,
       debugShowCheckedModeBanner: false,
     );
   }
