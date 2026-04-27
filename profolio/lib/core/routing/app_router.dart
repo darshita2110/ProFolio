@@ -35,21 +35,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) {
-      final isAuth = userAsyncValue.whenData(
-        (user) => user != null,
-      ).value ?? false;
-
       final isLoading = userAsyncValue.isLoading;
-      final isAuthScreen = state.matchedLocation == AppRoutes.auth;
-      final isOnboardingScreen = state.matchedLocation == AppRoutes.onboarding;
-
       if (isLoading) return null;
 
-      if (!isAuth) {
-        return isAuthScreen ? null : AppRoutes.auth;
+      final user = userAsyncValue.value;
+      final isAuthed = user != null;
+      final location = state.matchedLocation;
+
+      if (!isAuthed) {
+        // Not logged in — send to auth unless already there
+        return location == AppRoutes.auth ? null : AppRoutes.auth;
       }
 
-      if (isAuthScreen) {
+      // Logged in
+      if (location == AppRoutes.auth) {
+        // After login, go to profile (profile_screen handles onboarding redirect)
         return AppRoutes.profile;
       }
 

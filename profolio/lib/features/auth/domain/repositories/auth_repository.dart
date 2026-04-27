@@ -14,14 +14,14 @@ abstract class IAuthRepository {
     required String password,
   });
 
+  Future<UserProfile?> signInWithGoogle();
+
   Future<void> signOut();
 
   Future<void> resetPassword({required String email});
 
   bool get isAuthenticated;
-
   String? get currentUserId;
-
   Stream<User?> get authStateChanges;
 }
 
@@ -71,8 +71,29 @@ class AuthRepository implements IAuthRepository {
       if (userCredential.user != null) {
         return UserProfile(
           id: userCredential.user!.uid,
-          name: '',
+          name: userCredential.user!.displayName ?? '',
           email: email,
+        );
+      }
+      return null;
+    } on AuthException {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UserProfile?> signInWithGoogle() async {
+    try {
+      final userCredential = await authService.signInWithGoogle();
+      final user = userCredential.user;
+
+      if (user != null) {
+        return UserProfile(
+          id: user.uid,
+          name: user.displayName ?? '',
+          email: user.email ?? '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
       }
       return null;

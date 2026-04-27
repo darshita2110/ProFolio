@@ -36,8 +36,7 @@ class AuthState {
 class AuthController extends StateNotifier<AuthState> {
   final IAuthRepository authRepository;
 
-  AuthController({required this.authRepository})
-      : super(AuthState());
+  AuthController({required this.authRepository}) : super(AuthState());
 
   Future<void> registerWithEmail({
     required String email,
@@ -53,15 +52,9 @@ class AuthController extends StateNotifier<AuthState> {
         name: name,
       );
 
-      state = state.copyWith(
-        isLoading: false,
-        userProfile: userProfile,
-      );
+      state = state.copyWith(isLoading: false, userProfile: userProfile);
     } on AuthException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.message,
-      );
+      state = state.copyWith(isLoading: false, error: e.message);
     }
   }
 
@@ -77,15 +70,20 @@ class AuthController extends StateNotifier<AuthState> {
         password: password,
       );
 
-      state = state.copyWith(
-        isLoading: false,
-        userProfile: userProfile,
-      );
+      state = state.copyWith(isLoading: false, userProfile: userProfile);
     } on AuthException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.message,
-      );
+      state = state.copyWith(isLoading: false, error: e.message);
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final userProfile = await authRepository.signInWithGoogle();
+      state = state.copyWith(isLoading: false, userProfile: userProfile);
+    } on AuthException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message);
     }
   }
 
@@ -96,10 +94,7 @@ class AuthController extends StateNotifier<AuthState> {
       await authRepository.signOut();
       state = AuthState();
     } on AuthException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.message,
-      );
+      state = state.copyWith(isLoading: false, error: e.message);
     }
   }
 
@@ -108,15 +103,9 @@ class AuthController extends StateNotifier<AuthState> {
 
     try {
       await authRepository.resetPassword(email: email);
-      state = state.copyWith(
-        isLoading: false,
-        error: null,
-      );
+      state = state.copyWith(isLoading: false);
     } on AuthException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.message,
-      );
+      state = state.copyWith(isLoading: false, error: e.message);
     }
   }
 
