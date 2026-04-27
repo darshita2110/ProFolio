@@ -5,6 +5,7 @@ import 'package:profolio/core/routing/app_router.dart';
 import 'package:profolio/core/providers/firebase_providers.dart';
 import 'package:profolio/features/profile/application/profile_controller.dart';
 import 'package:profolio/models/user_profile.dart';
+import 'package:profolio/features/auth/application/auth_controller.dart';
 
 class ProfileScreen extends ConsumerWidget {
   final bool isEditing;

@@ -1,66 +1,69 @@
-class Experience {
-  final String role;
-  final String company;
-  final String duration;
-  final String? description;
+class Education {
+  final String degree;
+  final String institution;
+  final String year;
+  final String? grade;
 
-  Experience({
-    required this.role,
-    required this.company,
-    required this.duration,
-    this.description,
+  Education({
+    required this.degree,
+    required this.institution,
+    required this.year,
+    this.grade,
   });
 
-  factory Experience.fromJson(Map<String, dynamic> json) {
-    return Experience(
-      role: json['role'] as String? ?? '',
-      company: json['company'] as String? ?? '',
-      duration: json['duration'] as String? ?? '',
-      description: json['description'] as String?,
+  /// Create Education from JSON
+  factory Education.fromJson(Map<String, dynamic> json) {
+    return Education(
+      degree: json['degree'] as String? ?? '',
+      institution: json['institution'] as String? ?? '',
+      year: json['year'] as String? ?? '',
+      grade: json['grade'] as String?,
     );
   }
 
+  /// Convert Education to JSON
   Map<String, dynamic> toJson() {
     return {
-      'role': role,
-      'company': company,
-      'duration': duration,
-      'description': description,
+      'degree': degree,
+      'institution': institution,
+      'year': year,
+      'grade': grade,
     };
   }
 
-  Experience copyWith({
-    String? role,
-    String? company,
-    String? duration,
-    String? description,
+  /// Create a copy of Education with modified fields
+  Education copyWith({
+    String? degree,
+    String? institution,
+    String? year,
+    String? grade,
   }) {
-    return Experience(
-      role: role ?? this.role,
-      company: company ?? this.company,
-      duration: duration ?? this.duration,
-      description: description ?? this.description,
+    return Education(
+      degree: degree ?? this.degree,
+      institution: institution ?? this.institution,
+      year: year ?? this.year,
+      grade: grade ?? this.grade,
     );
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Experience &&
+      other is Education &&
           runtimeType == other.runtimeType &&
-          role == other.role &&
-          company == other.company &&
-          duration == other.duration &&
-          description == other.description;
+          degree == other.degree &&
+          institution == other.institution &&
+          year == other.year &&
+          grade == other.grade;
 
   @override
   int get hashCode =>
-      role.hashCode ^
-      company.hashCode ^
-      duration.hashCode ^
-      description.hashCode;
+      degree.hashCode ^
+      institution.hashCode ^
+      year.hashCode ^
+      grade.hashCode;
 
   @override
   String toString() =>
-      'Experience(role: $role, company: $company, duration: $duration, description: $description)';
+      'Education(degree: $degree, institution: $institution, year: $year, grade: $grade)';
 }

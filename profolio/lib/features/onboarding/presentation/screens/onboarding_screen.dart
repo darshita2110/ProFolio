@@ -5,6 +5,7 @@ import 'package:profolio/core/routing/app_router.dart';
 import 'package:profolio/features/onboarding/application/onboarding_controller.dart';
 import 'package:profolio/models/education.dart';
 import 'package:profolio/models/experience.dart';
+import 'package:profolio/core/providers/firebase_providers.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
