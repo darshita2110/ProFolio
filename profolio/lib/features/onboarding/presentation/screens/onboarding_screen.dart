@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:profolio/core/routing/app_router.dart';
+import 'package:profolio/core/theme/app_theme.dart';
 import 'package:profolio/features/onboarding/application/onboarding_controller.dart';
 import 'package:profolio/models/education.dart';
 import 'package:profolio/models/experience.dart';
 import 'package:profolio/core/providers/firebase_providers.dart';
-import 'package:profolio/core/theme/app_theme.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -16,95 +16,41 @@ class OnboardingScreen extends ConsumerStatefulWidget {
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
-    with TickerProviderStateMixin {
-  late TextEditingController _nameController;
-  late TextEditingController _emailController;
-  late TextEditingController _skillController;
-  late TextEditingController _interestController;
-  late AnimationController _progressController;
-  late Animation<double> _progressAnimation;
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  final _nameCtrl     = TextEditingController();
+  final _emailCtrl    = TextEditingController();
+  final _skillCtrl    = TextEditingController();
+  final _interestCtrl = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController();
-    _emailController = TextEditingController();
-    _skillController = TextEditingController();
-    _interestController = TextEditingController();
-    _progressController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _progressAnimation = CurvedAnimation(
-      parent: _progressController,
-      curve: Curves.easeInOut,
-    );
-    _progressController.forward();
-  }
+  static const _steps = [
+    _Step('Personal Info',  'Who are you?',              Icons.person_outline_rounded),
+    _Step('Skills',         'What can you do?',          Icons.code_rounded),
+    _Step('Journey',        'Experience & education',    Icons.work_outline_rounded),
+    _Step('Interests',      'What lights you up?',       Icons.auto_awesome_outlined),
+  ];
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _skillController.dispose();
-    _interestController.dispose();
-    _progressController.dispose();
+    _nameCtrl.dispose();
+    _emailCtrl.dispose();
+    _skillCtrl.dispose();
+    _interestCtrl.dispose();
     super.dispose();
-  }
-
-  void _animateProgress(int step, int total) {
-    _progressController.animateTo(
-      (step + 1) / total,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
-
     return currentUser.when(
       data: (user) {
         if (user == null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.go(AppRoutes.auth);
-          });
+          WidgetsBinding.instance.addPostFrameCallback((_) => context.go(AppRoutes.auth));
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-
-        final state = ref.watch(onboardingControllerProvider(user.uid));
-        final notifier =
-            ref.read(onboardingControllerProvider(user.uid).notifier);
-
-        final steps = [
-          _StepConfig(
-            title: 'Personal Info',
-            subtitle: 'Tell us about yourself',
-            icon: Icons.person_outline_rounded,
-          ),
-          _StepConfig(
-            title: 'Your Skills',
-            subtitle: 'What are you good at?',
-            icon: Icons.code_rounded,
-          ),
-          _StepConfig(
-            title: 'Experience & Education',
-            subtitle: 'Your professional journey',
-            icon: Icons.work_outline_rounded,
-          ),
-          _StepConfig(
-            title: 'Interests',
-            subtitle: 'What do you love?',
-            icon: Icons.interests_outlined,
-          ),
-        ];
-
-        final totalSteps = steps.length;
-        final currentStep = state.currentStep;
-
-        _animateProgress(currentStep, totalSteps);
+        final state   = ref.watch(onboardingControllerProvider(user.uid));
+        final notifier = ref.read(onboardingControllerProvider(user.uid).notifier);
+        final step    = state.currentStep;
+        final total   = _steps.length;
 
         return PopScope(
           canPop: false,
@@ -113,226 +59,208 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             body: SafeArea(
               child: Column(
                 children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                  // ── Header ─────────────────────────────────────────────
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            if (currentStep > 0)
-                              GestureDetector(
-                                onTap: notifier.previousStep,
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.bgCard,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: AppTheme.border),
-                                  ),
-                                  child: const Icon(Icons.arrow_back_rounded,
-                                      size: 16, color: AppTheme.textPrimary),
+                        // Top row
+                        Row(children: [
+                          if (step > 0)
+                            GestureDetector(
+                              onTap: notifier.previousStep,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.bgCard,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppTheme.border),
                                 ),
-                              )
-                            else
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFF6366F1),
-                                          Color(0xFF8B5CF6),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.person_outline_rounded,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'ProFolio',
-                                    style: GoogleFonts.spaceGrotesk(
+                                child: const Icon(Icons.arrow_back_rounded,
+                                    size: 16, color: AppTheme.textPrimary),
+                              ),
+                            )
+                          else
+                            Row(children: [
+                              Container(
+                                width: 32, height: 32,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.person_outline_rounded,
+                                    color: Color(0xFF0F0E0C), size: 16),
+                              ),
+                              const SizedBox(width: 8),
+                              Text('ProFolio',
+                                  style: GoogleFonts.dmSerifDisplay(
                                       fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            const Spacer(),
-                            Text(
-                              '${currentStep + 1} / $totalSteps',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 13,
-                                color: AppTheme.textMuted,
-                                fontWeight: FontWeight.w500,
-                              ),
+                                      color: AppTheme.textPrimary)),
+                            ]),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.bgCard,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppTheme.border),
                             ),
-                          ],
-                        ),
+                            child: Text('${step + 1} / $total',
+                                style: GoogleFonts.dmSans(
+                                    fontSize: 12,
+                                    color: AppTheme.textMuted,
+                                    fontWeight: FontWeight.w500)),
+                          ),
+                        ]),
 
                         const SizedBox(height: 20),
 
-                        // Progress bar
+                        // Progress
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
-                            value: (currentStep + 1) / totalSteps,
+                            value: (step + 1) / total,
                             backgroundColor: AppTheme.border,
                             valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppTheme.primary),
-                            minHeight: 4,
+                            minHeight: 3,
                           ),
                         ),
 
-                        const SizedBox(height: 24),
-
-                        // Step dots
-                        Row(
-                          children: List.generate(totalSteps, (i) {
-                            final isActive = i == currentStep;
-                            final isDone = i < currentStep;
-                            return Expanded(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 3),
-                                child: Column(
-                                  children: [
-                                    AnimatedContainer(
-                                      duration: const Duration(milliseconds: 300),
-                                      height: 4,
-                                      decoration: BoxDecoration(
-                                        color: isDone
-                                            ? AppTheme.primary
-                                            : isActive
-                                                ? AppTheme.primary
-                                                    .withOpacity(0.4)
-                                                : AppTheme.border,
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      steps[i].title,
-                                      style: GoogleFonts.dmSans(
-                                        fontSize: 10,
-                                        color: isActive
-                                            ? AppTheme.primary
-                                            : isDone
-                                                ? AppTheme.textSecondary
-                                                : AppTheme.textMuted,
-                                        fontWeight: isActive
-                                            ? FontWeight.w600
-                                            : FontWeight.w400,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 18),
 
                         // Step title
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primary.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                steps[currentStep].icon,
-                                color: AppTheme.primary,
-                                size: 20,
-                              ),
+                        Row(children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  steps[currentStep].title,
-                                  style: GoogleFonts.spaceGrotesk(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                                Text(
-                                  steps[currentStep].subtitle,
+                            child: Icon(_steps[step].icon,
+                                color: AppTheme.primary, size: 18),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(_steps[step].title,
+                                  style: GoogleFonts.dmSerifDisplay(
+                                      fontSize: 20,
+                                      color: AppTheme.textPrimary)),
+                              Text(_steps[step].subtitle,
                                   style: GoogleFonts.dmSans(
-                                    fontSize: 13,
-                                    color: AppTheme.textMuted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                                      fontSize: 12,
+                                      color: AppTheme.textMuted)),
+                            ],
+                          ),
+                        ]),
+
+                        const SizedBox(height: 16),
+                        Container(height: 1, color: AppTheme.border),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 20),
-                  const Divider(height: 1, color: AppTheme.border),
-
-                  // Step content
+                  // ── Content ───────────────────────────────────────────
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: _buildCurrentStep(
-                          currentStep, state, notifier, context),
+                      padding: const EdgeInsets.all(20),
+                      child: _buildStep(step, state, notifier, context),
                     ),
                   ),
 
-                  // Error display
+                  // ── Error ─────────────────────────────────────────────
                   if (state.error != null)
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: AppTheme.error.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
-                        border:
-                            Border.all(color: AppTheme.error.withOpacity(0.3)),
+                        border: Border.all(
+                            color: AppTheme.error.withOpacity(0.3)),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error_outline,
-                              color: AppTheme.error, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(state.error!,
-                                style: GoogleFonts.dmSans(
-                                    color: AppTheme.error, fontSize: 13)),
-                          ),
-                          GestureDetector(
-                            onTap: notifier.clearError,
-                            child: const Icon(Icons.close,
-                                size: 16, color: AppTheme.error),
-                          ),
-                        ],
-                      ),
+                      child: Row(children: [
+                        const Icon(Icons.error_outline,
+                            color: AppTheme.error, size: 15),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(state.error!,
+                              style: GoogleFonts.dmSans(
+                                  color: AppTheme.error, fontSize: 12)),
+                        ),
+                        GestureDetector(
+                          onTap: notifier.clearError,
+                          child: const Icon(Icons.close,
+                              size: 15, color: AppTheme.error),
+                        ),
+                      ]),
                     ),
 
-                  // Bottom CTA
+                  // ── CTA ───────────────────────────────────────────────
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                    child: _buildCTA(
-                        currentStep, totalSteps, state, notifier, context, user.uid),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                    child: GestureDetector(
+                      onTap: state.isLoading
+                          ? null
+                          : step == total - 1
+                              ? () async {
+                                  await notifier.saveProfile();
+                                  if (mounted &&
+                                      !ref
+                                          .read(onboardingControllerProvider(
+                                              user.uid))
+                                          .isLoading &&
+                                      ref
+                                              .read(onboardingControllerProvider(
+                                                  user.uid))
+                                              .error ==
+                                          null) {
+                                    context.go(AppRoutes.profile);
+                                  }
+                                }
+                              : notifier.nextStep,
+                      child: Container(
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: state.isLoading
+                              ? AppTheme.primary.withOpacity(0.5)
+                              : AppTheme.primary,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Center(
+                          child: state.isLoading
+                              ? const SizedBox(
+                                  width: 20, height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF0F0E0C),
+                                  ))
+                              : Row(mainAxisSize: MainAxisSize.min, children: [
+                                  Text(
+                                    step == total - 1
+                                        ? 'Complete Profile'
+                                        : 'Continue',
+                                    style: GoogleFonts.dmSans(
+                                        color: const Color(0xFF0F0E0C),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    step == total - 1
+                                        ? Icons.check_rounded
+                                        : Icons.arrow_forward_rounded,
+                                    color: const Color(0xFF0F0E0C),
+                                    size: 17,
+                                  ),
+                                ]),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -340,312 +268,145 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           ),
         );
       },
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('Error: $e'))),
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text('$e'))),
     );
   }
 
-  Widget _buildCurrentStep(
+  // ── Step builders ────────────────────────────────────────────────────────
+
+  Widget _buildStep(
     int step,
     OnboardingState state,
     OnboardingController notifier,
     BuildContext context,
   ) {
     switch (step) {
-      case 0:
-        return _buildPersonalStep(state, notifier);
-      case 1:
-        return _buildSkillsStep(state, notifier);
-      case 2:
-        return _buildExpEduStep(state, notifier, context);
-      case 3:
-        return _buildInterestsStep(state, notifier);
-      default:
-        return const SizedBox();
+      case 0: return _personalStep(state, notifier);
+      case 1: return _skillsStep(state, notifier);
+      case 2: return _journeyStep(state, notifier, context);
+      case 3: return _interestsStep(state, notifier);
+      default: return const SizedBox();
     }
   }
 
-  Widget _buildPersonalStep(OnboardingState state, OnboardingController notifier) {
-    return Column(
-      children: [
-        _styledField(
-          controller: _nameController,
-          label: 'Full Name',
-          hint: 'John Doe',
-          icon: Icons.person_outline_rounded,
-          onChanged: notifier.updateName,
-          initialValue: state.name,
-        ),
-        const SizedBox(height: 16),
-        _styledField(
-          controller: _emailController,
-          label: 'Email Address',
-          hint: 'you@example.com',
-          icon: Icons.mail_outline_rounded,
-          onChanged: notifier.updateEmail,
-          keyboardType: TextInputType.emailAddress,
-          initialValue: state.email,
-        ),
-      ],
-    );
+  Widget _personalStep(OnboardingState state, OnboardingController n) {
+    if (_nameCtrl.text.isEmpty && state.name.isNotEmpty) _nameCtrl.text = state.name;
+    if (_emailCtrl.text.isEmpty && state.email.isNotEmpty) _emailCtrl.text = state.email;
+    return Column(children: [
+      _field(_nameCtrl, 'Full Name', 'Jane Doe',
+          Icons.person_outline_rounded, n.updateName),
+      const SizedBox(height: 14),
+      _field(_emailCtrl, 'Email Address', 'you@example.com',
+          Icons.mail_outline_rounded, n.updateEmail,
+          keyboard: TextInputType.emailAddress),
+    ]);
   }
 
-  Widget _buildSkillsStep(OnboardingState state, OnboardingController notifier) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _skillController,
-                style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-                decoration: _inputDec('e.g. Flutter, Python, Design…',
-                    Icons.code_rounded),
-                onSubmitted: (v) => _addSkill(v, notifier),
-              ),
-            ),
-            const SizedBox(width: 8),
-            _addBtn(() => _addSkill(_skillController.text, notifier)),
-          ],
+  Widget _skillsStep(OnboardingState state, OnboardingController n) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _chipInput(_skillCtrl, 'e.g. Flutter, Python, Design…',
+          Icons.code_rounded, () {
+        final v = _skillCtrl.text.trim();
+        if (v.isNotEmpty) { n.addSkill(v); _skillCtrl.clear(); }
+      }),
+      const SizedBox(height: 16),
+      if (state.skills.isNotEmpty) ...[
+        Text('Added',
+            style: GoogleFonts.dmSans(
+                fontSize: 12, color: AppTheme.textMuted,
+                fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6, runSpacing: 6,
+          children: state.skills
+              .map((s) => _chip(s, () => n.removeSkill(s)))
+              .toList(),
         ),
-        const SizedBox(height: 20),
-        if (state.skills.isNotEmpty) ...[
-          Text(
-            'Added Skills',
-            style: GoogleFonts.spaceGrotesk(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textMuted),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: state.skills
-                .map((s) => _chip(s, () => notifier.removeSkill(s)))
+      ] else
+        _emptyHint('Add skills like "Flutter", "UI Design", "Python"…'),
+    ]);
+  }
+
+  Widget _journeyStep(
+      OnboardingState state, OnboardingController n, BuildContext ctx) {
+    return Column(children: [
+      _subSection(
+        title: 'Experience',
+        icon: Icons.work_outline_rounded,
+        color: AppTheme.primary,
+        onAdd: () => _expSheet(ctx, n),
+        items: state.experience.isEmpty
+            ? null
+            : state.experience.asMap().entries
+                .map((e) => _record(
+                      e.value.role,
+                      '${e.value.company} · ${e.value.duration}',
+                      () => n.removeExperience(e.key),
+                    ))
                 .toList(),
-          ),
-        ] else
-          _emptyHint('Add skills like "Flutter", "UI Design", "Python"…'),
-      ],
-    );
-  }
-
-  Widget _buildExpEduStep(
-    OnboardingState state,
-    OnboardingController notifier,
-    BuildContext context,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _subSection(
-          title: 'Experience',
-          icon: Icons.work_outline_rounded,
-          color: AppTheme.primary,
-          onAdd: () => _showExpDialog(context, notifier),
-          children: state.experience.isEmpty
-              ? [_emptyHint('No experience yet')]
-              : state.experience
-                  .asMap()
-                  .entries
-                  .map((e) => _recordTile(
-                        title: e.value.role,
-                        subtitle: '${e.value.company} · ${e.value.duration}',
-                        onDelete: () => notifier.removeExperience(e.key),
-                        color: AppTheme.primary,
-                      ))
-                  .toList(),
-        ),
-        const SizedBox(height: 20),
-        _subSection(
-          title: 'Education',
-          icon: Icons.school_outlined,
-          color: AppTheme.accent,
-          onAdd: () => _showEduDialog(context, notifier),
-          children: state.education.isEmpty
-              ? [_emptyHint('No education yet')]
-              : state.education
-                  .asMap()
-                  .entries
-                  .map((e) => _recordTile(
-                        title: e.value.degree,
-                        subtitle:
-                            '${e.value.institution} · ${e.value.year}',
-                        onDelete: () => notifier.removeEducation(e.key),
-                        color: AppTheme.accent,
-                      ))
-                  .toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInterestsStep(
-      OnboardingState state, OnboardingController notifier) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _interestController,
-                style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-                decoration: _inputDec(
-                    'e.g. Photography, Gaming, Music…',
-                    Icons.interests_outlined),
-                onSubmitted: (v) => _addInterest(v, notifier),
-              ),
-            ),
-            const SizedBox(width: 8),
-            _addBtn(() => _addInterest(_interestController.text, notifier)),
-          ],
-        ),
-        const SizedBox(height: 20),
-        if (state.interests.isNotEmpty) ...[
-          Text(
-            'Added Interests',
-            style: GoogleFonts.spaceGrotesk(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textMuted),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: state.interests
-                .map((i) =>
-                    _chip(i, () => notifier.removeInterest(i), color: AppTheme.accent))
-                .toList(),
-          ),
-        ] else
-          _emptyHint('Add things you\'re passionate about'),
-      ],
-    );
-  }
-
-  Widget _buildCTA(
-    int currentStep,
-    int totalSteps,
-    OnboardingState state,
-    OnboardingController notifier,
-    BuildContext context,
-    String userId,
-  ) {
-    final isLast = currentStep == totalSteps - 1;
-
-    return GestureDetector(
-      onTap: state.isLoading
-          ? null
-          : isLast
-              ? () async {
-                  await notifier.saveProfile();
-                  if (mounted && state.error == null) {
-                    context.go(AppRoutes.profile);
-                  }
-                }
-              : notifier.nextStep,
-      child: Container(
-        height: 54,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: state.isLoading
-                ? [const Color(0xFF4B4DB5), const Color(0xFF6364BC)]
-                : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primary.withOpacity(0.3),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Center(
-          child: state.isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      isLast ? 'Complete Profile' : 'Continue',
-                      style: GoogleFonts.dmSans(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      isLast
-                          ? Icons.check_rounded
-                          : Icons.arrow_forward_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ],
-                ),
-        ),
       ),
-    );
+      const SizedBox(height: 14),
+      _subSection(
+        title: 'Education',
+        icon: Icons.school_outlined,
+        color: AppTheme.accent,
+        onAdd: () => _eduSheet(ctx, n),
+        items: state.education.isEmpty
+            ? null
+            : state.education.asMap().entries
+                .map((e) => _record(
+                      e.value.degree,
+                      '${e.value.institution} · ${e.value.year}',
+                      () => n.removeEducation(e.key),
+                    ))
+                .toList(),
+      ),
+    ]);
+  }
+
+  Widget _interestsStep(OnboardingState state, OnboardingController n) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _chipInput(_interestCtrl, 'e.g. Photography, Gaming…',
+          Icons.auto_awesome_outlined, () {
+        final v = _interestCtrl.text.trim();
+        if (v.isNotEmpty) { n.addInterest(v); _interestCtrl.clear(); }
+      }),
+      const SizedBox(height: 16),
+      if (state.interests.isNotEmpty) ...[
+        Text('Added',
+            style: GoogleFonts.dmSans(
+                fontSize: 12,
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6, runSpacing: 6,
+          children: state.interests
+              .map((i) => _chip(i, () => n.removeInterest(i),
+                  color: AppTheme.accent))
+              .toList(),
+        ),
+      ] else
+        _emptyHint('Add things you\'re passionate about'),
+    ]);
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
 
-  void _addSkill(String v, OnboardingController notifier) {
-    final val = v.trim();
-    if (val.isNotEmpty) {
-      notifier.addSkill(val);
-      _skillController.clear();
-    }
-  }
-
-  void _addInterest(String v, OnboardingController notifier) {
-    final val = v.trim();
-    if (val.isNotEmpty) {
-      notifier.addInterest(val);
-      _interestController.clear();
-    }
-  }
-
-  InputDecoration _inputDec(String hint, IconData icon) {
-    return InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon, size: 18, color: AppTheme.textMuted),
-    );
-  }
-
-  Widget _styledField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required Function(String) onChanged,
-    String initialValue = '',
-    TextInputType? keyboardType,
+  Widget _field(
+    TextEditingController ctrl,
+    String label,
+    String hint,
+    IconData icon,
+    Function(String) onChange, {
+    TextInputType? keyboard,
   }) {
-    if (controller.text.isEmpty && initialValue.isNotEmpty) {
-      controller.text = initialValue;
-    }
     return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      keyboardType: keyboardType,
-      style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
+      controller: ctrl,
+      onChanged: onChange,
+      keyboardType: keyboard,
+      style: GoogleFonts.dmSans(color: AppTheme.textPrimary, fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -654,68 +415,75 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     );
   }
 
-  Widget _addBtn(VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppTheme.primary,
-          borderRadius: BorderRadius.circular(12),
+  Widget _chipInput(
+    TextEditingController ctrl,
+    String hint,
+    IconData icon,
+    VoidCallback onAdd,
+  ) {
+    return Row(children: [
+      Expanded(
+        child: TextField(
+          controller: ctrl,
+          onSubmitted: (_) => onAdd(),
+          style: GoogleFonts.dmSans(color: AppTheme.textPrimary, fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Icon(icon, size: 17, color: AppTheme.textMuted),
+          ),
         ),
-        child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
-    );
+      const SizedBox(width: 8),
+      GestureDetector(
+        onTap: onAdd,
+        child: Container(
+          width: 44, height: 44,
+          decoration: BoxDecoration(
+              color: AppTheme.primary,
+              borderRadius: BorderRadius.circular(12)),
+          child: const Icon(Icons.add_rounded,
+              color: Color(0xFF0F0E0C), size: 20),
+        ),
+      ),
+    ]);
   }
 
-  Widget _chip(String label, VoidCallback onDelete, {Color? color}) {
+  Widget _chip(String label, VoidCallback onDel, {Color? color}) {
     final c = color ?? AppTheme.primary;
     return Container(
-      padding: const EdgeInsets.only(left: 12, right: 6, top: 6, bottom: 6),
+      padding: const EdgeInsets.only(left: 10, right: 6, top: 5, bottom: 5),
       decoration: BoxDecoration(
         color: c.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: c.withOpacity(0.3)),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Text(label,
             style: GoogleFonts.dmSans(
-                fontSize: 13, color: c, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(width: 6),
-          GestureDetector(
-            onTap: onDelete,
-            child: Icon(Icons.close_rounded, size: 14, color: c),
-          ),
-        ],
-      ),
+                fontSize: 13, color: c, fontWeight: FontWeight.w500)),
+        const SizedBox(width: 5),
+        GestureDetector(
+            onTap: onDel,
+            child: Icon(Icons.close_rounded, size: 13, color: c)),
+      ]),
     );
   }
 
-  Widget _emptyHint(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Text(
-        text,
+  Widget _emptyHint(String text) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: Text(text,
         style: GoogleFonts.dmSans(
-          fontSize: 13,
-          color: AppTheme.textMuted,
-          fontStyle: FontStyle.italic,
-        ),
-      ),
-    );
-  }
+            fontSize: 13,
+            color: AppTheme.textMuted,
+            fontStyle: FontStyle.italic)),
+  );
 
   Widget _subSection({
     required String title,
     required IconData icon,
     required Color color,
     required VoidCallback onAdd,
-    required List<Widget> children,
+    List<Widget>? items,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -728,187 +496,187 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 10, 0),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(5),
+            child: Row(children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, size: 13, color: color),
+              ),
+              const SizedBox(width: 8),
+              Text(title,
+                  style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary)),
+              const Spacer(),
+              GestureDetector(
+                onTap: onAdd,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, size: 14, color: color),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.add_rounded, size: 13, color: color),
+                    const SizedBox(width: 3),
+                    Text('Add',
+                        style: GoogleFonts.dmSans(
+                            fontSize: 12,
+                            color: color,
+                            fontWeight: FontWeight.w600)),
+                  ]),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: GoogleFonts.spaceGrotesk(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary),
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: onAdd,
-                  icon: const Icon(Icons.add_rounded, size: 14),
-                  label: Text('Add', style: GoogleFonts.dmSans(fontSize: 12)),
-                  style: TextButton.styleFrom(
-                    foregroundColor: color,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ]),
           ),
           Padding(
             padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: children,
-            ),
+            child: items == null || items.isEmpty
+                ? _emptyHint('Nothing added yet')
+                : Column(children: items),
           ),
         ],
       ),
     );
   }
 
-  Widget _recordTile({
-    required String title,
-    required String subtitle,
-    required VoidCallback onDelete,
-    required Color color,
-  }) {
+  Widget _record(String title, String sub, VoidCallback onDel) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: const EdgeInsets.only(bottom: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
         color: AppTheme.bgBase,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppTheme.border),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: GoogleFonts.spaceGrotesk(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary)),
-                Text(subtitle,
-                    style: GoogleFonts.dmSans(
-                        fontSize: 12, color: AppTheme.textMuted)),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: onDelete,
+      child: Row(children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(title,
+                style: GoogleFonts.dmSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary)),
+            Text(sub,
+                style: GoogleFonts.dmSans(
+                    fontSize: 11, color: AppTheme.textMuted)),
+          ]),
+        ),
+        GestureDetector(
+            onTap: onDel,
             child: const Icon(Icons.delete_outline_rounded,
-                size: 18, color: AppTheme.error),
-          ),
-        ],
-      ),
+                size: 16, color: AppTheme.error)),
+      ]),
     );
   }
 
-  void _showExpDialog(BuildContext context, OnboardingController notifier) {
-    final roleCtrl = TextEditingController();
-    final companyCtrl = TextEditingController();
-    final durationCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
+  void _expSheet(BuildContext ctx, OnboardingController n) {
+    final r = TextEditingController(), c = TextEditingController(),
+        d = TextEditingController(), desc = TextEditingController();
+    _sheet(ctx,
+      title: 'Add Experience',
+      color: AppTheme.primary,
+      fields: [
+        _sf(r, 'Role', Icons.badge_outlined),
+        _sf(c, 'Company', Icons.business_outlined),
+        _sf(d, 'Duration', Icons.calendar_today_outlined, hint: 'e.g. Jan 2022 – Present'),
+        _sf(desc, 'Description (optional)', Icons.notes_outlined, lines: 2),
+      ],
+      onAdd: () {
+        if (r.text.isNotEmpty && c.text.isNotEmpty && d.text.isNotEmpty) {
+          n.addExperience(Experience(
+            role: r.text.trim(), company: c.text.trim(),
+            duration: d.text.trim(),
+            description: desc.text.trim().isNotEmpty ? desc.text.trim() : null,
+          ));
+          return true;
+        }
+        return false;
+      },
+    );
+  }
 
+  void _eduSheet(BuildContext ctx, OnboardingController n) {
+    final d = TextEditingController(), i = TextEditingController(),
+        y = TextEditingController(), g = TextEditingController();
+    _sheet(ctx,
+      title: 'Add Education',
+      color: AppTheme.accent,
+      fields: [
+        _sf(d, 'Degree', Icons.school_outlined),
+        _sf(i, 'Institution', Icons.location_city_outlined),
+        _sf(y, 'Year', Icons.calendar_today_outlined),
+        _sf(g, 'Grade / GPA (optional)', Icons.grade_outlined),
+      ],
+      onAdd: () {
+        if (d.text.isNotEmpty && i.text.isNotEmpty && y.text.isNotEmpty) {
+          n.addEducation(Education(
+            degree: d.text.trim(), institution: i.text.trim(),
+            year: y.text.trim(),
+            grade: g.text.trim().isNotEmpty ? g.text.trim() : null,
+          ));
+          return true;
+        }
+        return false;
+      },
+    );
+  }
+
+  void _sheet(
+    BuildContext ctx, {
+    required String title,
+    required Color color,
+    required List<Widget> fields,
+    required bool Function() onAdd,
+  }) {
     showModalBottomSheet(
-      context: context,
+      context: ctx,
       isScrollControlled: true,
       backgroundColor: AppTheme.bgSurface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (bCtx) => Padding(
         padding: EdgeInsets.fromLTRB(
-            24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+            24, 20, 24, MediaQuery.of(bCtx).viewInsets.bottom + 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Add Experience',
-              style: GoogleFonts.spaceGrotesk(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: roleCtrl,
-              style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Role',
-                prefixIcon:
-                    const Icon(Icons.badge_outlined, size: 16, color: AppTheme.textMuted),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: companyCtrl,
-              style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Company',
-                prefixIcon: const Icon(Icons.business_outlined,
-                    size: 16, color: AppTheme.textMuted),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: durationCtrl,
-              style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Duration',
-                hintText: 'e.g. Jan 2022 – Present',
-                prefixIcon: const Icon(Icons.calendar_today_outlined,
-                    size: 16, color: AppTheme.textMuted),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: descCtrl,
-              maxLines: 2,
-              style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Description (optional)',
-                prefixIcon: const Icon(Icons.notes_outlined,
-                    size: 16, color: AppTheme.textMuted),
+            Center(
+              child: Container(
+                width: 36, height: 4,
+                decoration: BoxDecoration(
+                    color: AppTheme.border,
+                    borderRadius: BorderRadius.circular(2)),
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (roleCtrl.text.isNotEmpty &&
-                    companyCtrl.text.isNotEmpty &&
-                    durationCtrl.text.isNotEmpty) {
-                  notifier.addExperience(Experience(
-                    role: roleCtrl.text.trim(),
-                    company: companyCtrl.text.trim(),
-                    duration: durationCtrl.text.trim(),
-                    description: descCtrl.text.trim().isNotEmpty
-                        ? descCtrl.text.trim()
-                        : null,
-                  ));
-                  Navigator.pop(ctx);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
+            Text(title,
+                style: GoogleFonts.dmSerifDisplay(
+                    fontSize: 22, color: AppTheme.textPrimary)),
+            const SizedBox(height: 16),
+            ...fields.expand((f) => [f, const SizedBox(height: 12)]).toList()
+              ..removeLast(),
+            const SizedBox(height: 18),
+            GestureDetector(
+              onTap: () { if (onAdd()) Navigator.pop(bCtx); },
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                    color: color,
                     borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(
-                'Add Experience',
-                style: GoogleFonts.dmSans(
-                    color: Colors.white, fontWeight: FontWeight.w600),
+                child: Center(
+                  child: Text('Add',
+                      style: GoogleFonts.dmSans(
+                          color: const Color(0xFF0F0E0C),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15)),
+                ),
               ),
             ),
           ],
@@ -917,117 +685,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     );
   }
 
-  void _showEduDialog(BuildContext context, OnboardingController notifier) {
-    final degreeCtrl = TextEditingController();
-    final instCtrl = TextEditingController();
-    final yearCtrl = TextEditingController();
-    final gradeCtrl = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppTheme.bgSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.fromLTRB(
-            24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Add Education',
-              style: GoogleFonts.spaceGrotesk(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: degreeCtrl,
-              style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Degree',
-                prefixIcon: const Icon(Icons.school_outlined,
-                    size: 16, color: AppTheme.textMuted),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: instCtrl,
-              style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Institution',
-                prefixIcon: const Icon(Icons.location_city_outlined,
-                    size: 16, color: AppTheme.textMuted),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: yearCtrl,
-              style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Year',
-                prefixIcon: const Icon(Icons.calendar_today_outlined,
-                    size: 16, color: AppTheme.textMuted),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: gradeCtrl,
-              style: GoogleFonts.dmSans(color: AppTheme.textPrimary),
-              decoration: InputDecoration(
-                labelText: 'Grade / GPA (optional)',
-                prefixIcon: const Icon(Icons.grade_outlined,
-                    size: 16, color: AppTheme.textMuted),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (degreeCtrl.text.isNotEmpty &&
-                    instCtrl.text.isNotEmpty &&
-                    yearCtrl.text.isNotEmpty) {
-                  notifier.addEducation(Education(
-                    degree: degreeCtrl.text.trim(),
-                    institution: instCtrl.text.trim(),
-                    year: yearCtrl.text.trim(),
-                    grade: gradeCtrl.text.trim().isNotEmpty
-                        ? gradeCtrl.text.trim()
-                        : null,
-                  ));
-                  Navigator.pop(ctx);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accent,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(
-                'Add Education',
-                style: GoogleFonts.dmSans(
-                    color: Colors.white, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
+  Widget _sf(TextEditingController ctrl, String label, IconData icon,
+      {String? hint, int lines = 1}) {
+    return TextField(
+      controller: ctrl,
+      maxLines: lines,
+      style: GoogleFonts.dmSans(color: AppTheme.textPrimary, fontSize: 14),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon, size: 16, color: AppTheme.textMuted),
       ),
     );
   }
 }
 
-class _StepConfig {
-  final String title;
-  final String subtitle;
+class _Step {
+  final String title, subtitle;
   final IconData icon;
-
-  _StepConfig({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
+  const _Step(this.title, this.subtitle, this.icon);
 }

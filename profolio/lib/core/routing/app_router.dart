@@ -6,53 +6,32 @@ import 'package:profolio/features/onboarding/presentation/screens/onboarding_scr
 import 'package:profolio/features/profile/presentation/screens/profile_screen.dart';
 
 class AppRoutes {
-  static const String auth = '/auth';
-  static const String onboarding = '/onboarding';
-  static const String profile = '/profile';
+  static const String auth        = '/auth';
+  static const String onboarding  = '/onboarding';
+  static const String profile     = '/profile';
   static const String editProfile = '/edit-profile';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final userAsyncValue = ref.watch(currentUserProvider);
+  final userAsync = ref.watch(currentUserProvider);
 
   return GoRouter(
     routes: [
-      GoRoute(
-        path: AppRoutes.auth,
-        builder: (context, state) => const AuthScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.onboarding,
-        builder: (context, state) => const OnboardingScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.profile,
-        builder: (context, state) => const ProfileScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.editProfile,
-        builder: (context, state) => const ProfileScreen(isEditing: true),
-      ),
+      GoRoute(path: AppRoutes.auth,
+          builder: (_, __) => const AuthScreen()),
+      GoRoute(path: AppRoutes.onboarding,
+          builder: (_, __) => const OnboardingScreen()),
+      GoRoute(path: AppRoutes.profile,
+          builder: (_, __) => const ProfileScreen()),
+      GoRoute(path: AppRoutes.editProfile,
+          builder: (_, __) => const ProfileScreen(isEditing: true)),
     ],
     redirect: (context, state) {
-      final isLoading = userAsyncValue.isLoading;
-      if (isLoading) return null;
-
-      final user = userAsyncValue.value;
-      final isAuthed = user != null;
+      if (userAsync.isLoading) return null;
+      final authed   = userAsync.value != null;
       final location = state.matchedLocation;
-
-      if (!isAuthed) {
-        // Not logged in — send to auth unless already there
-        return location == AppRoutes.auth ? null : AppRoutes.auth;
-      }
-
-      // Logged in
-      if (location == AppRoutes.auth) {
-        // After login, go to profile (profile_screen handles onboarding redirect)
-        return AppRoutes.profile;
-      }
-
+      if (!authed) return location == AppRoutes.auth ? null : AppRoutes.auth;
+      if (location == AppRoutes.auth) return AppRoutes.profile;
       return null;
     },
     initialLocation: AppRoutes.auth,

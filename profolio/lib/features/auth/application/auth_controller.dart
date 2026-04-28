@@ -5,8 +5,7 @@ import 'package:profolio/features/auth/domain/repositories/auth_repository.dart'
 import 'package:profolio/models/user_profile.dart';
 
 final authRepositoryProvider = Provider<IAuthRepository>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return AuthRepository(authService: authService);
+  return AuthRepository(authService: ref.watch(authServiceProvider));
 });
 
 class AuthState {
@@ -14,74 +13,35 @@ class AuthState {
   final String? error;
   final UserProfile? userProfile;
 
-  AuthState({
-    this.isLoading = false,
-    this.error,
-    this.userProfile,
-  });
+  AuthState({this.isLoading = false, this.error, this.userProfile});
 
-  AuthState copyWith({
-    bool? isLoading,
-    String? error,
-    UserProfile? userProfile,
-  }) {
-    return AuthState(
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-      userProfile: userProfile ?? this.userProfile,
-    );
-  }
+  AuthState copyWith({bool? isLoading, String? error, UserProfile? userProfile}) =>
+      AuthState(
+        isLoading: isLoading ?? this.isLoading,
+        error: error,
+        userProfile: userProfile ?? this.userProfile,
+      );
 }
 
 class AuthController extends StateNotifier<AuthState> {
-  final IAuthRepository authRepository;
+  final IAuthRepository repo;
+  AuthController({required this.repo}) : super(AuthState());
 
-  AuthController({required this.authRepository}) : super(AuthState());
-
-  Future<void> registerWithEmail({
-    required String email,
-    required String password,
-    required String name,
-  }) async {
+  Future<void> registerWithEmail({required String email, required String password, required String name}) async {
     state = state.copyWith(isLoading: true, error: null);
-
     try {
-      final userProfile = await authRepository.registerWithEmail(
-        email: email,
-        password: password,
-        name: name,
-      );
-
-      state = state.copyWith(isLoading: false, userProfile: userProfile);
+      final p = await repo.registerWithEmail(email: email, password: password, name: name);
+      state = state.copyWith(isLoading: false, userProfile: p);
     } on AuthException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
     }
   }
 
-  Future<void> signInWithEmail({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signInWithEmail({required String email, required String password}) async {
     state = state.copyWith(isLoading: true, error: null);
-
     try {
-      final userProfile = await authRepository.signInWithEmail(
-        email: email,
-        password: password,
-      );
-
-      state = state.copyWith(isLoading: false, userProfile: userProfile);
-    } on AuthException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
-    }
-  }
-
-  Future<void> signInWithGoogle() async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final userProfile = await authRepository.signInWithGoogle();
-      state = state.copyWith(isLoading: false, userProfile: userProfile);
+      final p = await repo.signInWithEmail(email: email, password: password);
+      state = state.copyWith(isLoading: false, userProfile: p);
     } on AuthException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
     }
@@ -89,9 +49,8 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> signOut() async {
     state = state.copyWith(isLoading: true, error: null);
-
     try {
-      await authRepository.signOut();
+      await repo.signOut();
       state = AuthState();
     } on AuthException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
@@ -100,22 +59,17 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> resetPassword({required String email}) async {
     state = state.copyWith(isLoading: true, error: null);
-
     try {
-      await authRepository.resetPassword(email: email);
+      await repo.resetPassword(email: email);
       state = state.copyWith(isLoading: false);
     } on AuthException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
     }
   }
 
-  void clearError() {
-    state = state.copyWith(error: null);
-  }
+  void clearError() => state = state.copyWith(error: null);
 }
 
-final authControllerProvider =
-    StateNotifierProvider<AuthController, AuthState>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  return AuthController(authRepository: authRepository);
+final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
+  return AuthController(repo: ref.watch(authRepositoryProvider));
 });
