@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:profolio/models/education.dart';
 import 'package:profolio/models/experience.dart';
 
@@ -39,12 +40,8 @@ class UserProfile {
               .toList() ??
           [],
       interests: List<String>.from(json['interests'] as List? ?? []),
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'] as String)
-          : null,
+      createdAt: _parseDate(json['createdAt']),
+      updatedAt: _parseDate(json['updatedAt']),
     );
   }
 
@@ -57,10 +54,11 @@ class UserProfile {
       'experience': experience.map((e) => e.toJson()).toList(),
       'education': education.map((e) => e.toJson()).toList(),
       'interests': interests,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
+      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : null,
+      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
     };
   }
+
   UserProfile copyWith({
     String? id,
     String? name,
@@ -83,6 +81,15 @@ class UserProfile {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is String && value.isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
+    return null;
   }
 
   @override
@@ -114,5 +121,7 @@ class UserProfile {
 
   @override
   String toString() =>
-      'UserProfile(id: $id, name: $name, email: $email, skills: $skills, experience: $experience, education: $education, interests: $interests, createdAt: $createdAt, updatedAt: $updatedAt)';
+      'UserProfile(id: $id, name: $name, email: $email, skills: $skills, '
+      'experience: $experience, education: $education, interests: $interests, '
+      'createdAt: $createdAt, updatedAt: $updatedAt)';
 }

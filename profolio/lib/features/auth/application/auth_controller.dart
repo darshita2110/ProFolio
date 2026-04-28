@@ -5,7 +5,10 @@ import 'package:profolio/features/auth/domain/repositories/auth_repository.dart'
 import 'package:profolio/models/user_profile.dart';
 
 final authRepositoryProvider = Provider<IAuthRepository>((ref) {
-  return AuthRepository(authService: ref.watch(authServiceProvider));
+  return AuthRepository(
+    authService: ref.watch(authServiceProvider),
+    firestore: ref.watch(firebaseFirestoreProvider),
+  );
 });
 
 class AuthState {
@@ -27,17 +30,25 @@ class AuthController extends StateNotifier<AuthState> {
   final IAuthRepository repo;
   AuthController({required this.repo}) : super(AuthState());
 
-  Future<void> registerWithEmail({required String email, required String password, required String name}) async {
+  Future<void> registerWithEmail({
+    required String email,
+    required String password,
+    required String name,
+  }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final p = await repo.registerWithEmail(email: email, password: password, name: name);
+      final p = await repo.registerWithEmail(
+          email: email, password: password, name: name);
       state = state.copyWith(isLoading: false, userProfile: p);
     } on AuthException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
     }
   }
 
-  Future<void> signInWithEmail({required String email, required String password}) async {
+  Future<void> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final p = await repo.signInWithEmail(email: email, password: password);
@@ -70,6 +81,7 @@ class AuthController extends StateNotifier<AuthState> {
   void clearError() => state = state.copyWith(error: null);
 }
 
-final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AuthState>((ref) {
   return AuthController(repo: ref.watch(authRepositoryProvider));
 });

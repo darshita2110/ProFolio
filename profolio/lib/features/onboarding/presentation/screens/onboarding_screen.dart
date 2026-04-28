@@ -40,6 +40,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bgBase       = AppTheme.bgBaseOf(context);
+    final bgCard       = AppTheme.bgCardOf(context);
+    final bgSurface    = AppTheme.bgSurfaceOf(context);
+    final borderColor  = AppTheme.borderOf(context);
+    final textPrimary  = AppTheme.textPrimaryOf(context);
+    final textSecondary= AppTheme.textSecondaryOf(context);
+    final textMuted    = AppTheme.textMutedOf(context);
+
     final currentUser = ref.watch(currentUserProvider);
     return currentUser.when(
       data: (user) {
@@ -47,15 +55,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           WidgetsBinding.instance.addPostFrameCallback((_) => context.go(AppRoutes.auth));
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        final state   = ref.watch(onboardingControllerProvider(user.uid));
+        final state    = ref.watch(onboardingControllerProvider(user.uid));
         final notifier = ref.read(onboardingControllerProvider(user.uid).notifier);
-        final step    = state.currentStep;
-        final total   = _steps.length;
+        final step     = state.currentStep;
+        final total    = _steps.length;
 
         return PopScope(
           canPop: false,
           child: Scaffold(
-            backgroundColor: AppTheme.bgBase,
+            backgroundColor: bgBase,
             body: SafeArea(
               child: Column(
                 children: [
@@ -71,12 +79,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.bgCard,
+                                  color: bgCard,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppTheme.border),
+                                  border: Border.all(color: borderColor),
                                 ),
-                                child: const Icon(Icons.arrow_back_rounded,
-                                    size: 16, color: AppTheme.textPrimary),
+                                child: Icon(Icons.arrow_back_rounded,
+                                    size: 16, color: textPrimary),
                               ),
                             )
                           else
@@ -93,34 +101,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               const SizedBox(width: 8),
                               Text('ProFolio',
                                   style: GoogleFonts.dmSerifDisplay(
-                                      fontSize: 18,
-                                      color: AppTheme.textPrimary)),
+                                      fontSize: 18, color: textPrimary)),
                             ]),
                           const Spacer(),
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppTheme.bgCard,
+                              color: bgCard,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppTheme.border),
+                              border: Border.all(color: borderColor),
                             ),
                             child: Text('${step + 1} / $total',
                                 style: GoogleFonts.dmSans(
                                     fontSize: 12,
-                                    color: AppTheme.textMuted,
+                                    color: textMuted,
                                     fontWeight: FontWeight.w500)),
                           ),
                         ]),
 
                         const SizedBox(height: 20),
 
-                        
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: (step + 1) / total,
-                            backgroundColor: AppTheme.border,
+                            backgroundColor: borderColor,
                             valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppTheme.primary),
                             minHeight: 3,
@@ -145,18 +151,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             children: [
                               Text(_steps[step].title,
                                   style: GoogleFonts.dmSerifDisplay(
-                                      fontSize: 20,
-                                      color: AppTheme.textPrimary)),
+                                      fontSize: 20, color: textPrimary)),
                               Text(_steps[step].subtitle,
                                   style: GoogleFonts.dmSans(
-                                      fontSize: 12,
-                                      color: AppTheme.textMuted)),
+                                      fontSize: 12, color: textMuted)),
                             ],
                           ),
                         ]),
 
                         const SizedBox(height: 16),
-                        Container(height: 1, color: AppTheme.border),
+                        Container(height: 1, color: borderColor),
                       ],
                     ),
                   ),
@@ -205,12 +209,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                   await notifier.saveProfile();
                                   if (mounted &&
                                       !ref
-                                          .read(onboardingControllerProvider(
-                                              user.uid))
+                                          .read(onboardingControllerProvider(user.uid))
                                           .isLoading &&
                                       ref
-                                              .read(onboardingControllerProvider(
-                                                  user.uid))
+                                              .read(onboardingControllerProvider(user.uid))
                                               .error ==
                                           null) {
                                     context.go(AppRoutes.profile);
@@ -220,10 +222,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       child: Container(
                         height: 54,
                         decoration: BoxDecoration(
+                          gradient: state.isLoading
+                              ? null
+                              : const LinearGradient(
+                                  colors: [AppTheme.primary, AppTheme.primaryGlow],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
                           color: state.isLoading
                               ? AppTheme.primary.withOpacity(0.5)
-                              : AppTheme.primary,
+                              : null,
                           borderRadius: BorderRadius.circular(14),
+                          boxShadow: state.isLoading
+                              ? null
+                              : [
+                                  BoxShadow(
+                                    color: AppTheme.primary.withOpacity(0.35),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  )
+                                ],
                         ),
                         child: Center(
                           child: state.isLoading
@@ -275,30 +293,30 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     BuildContext context,
   ) {
     switch (step) {
-      case 0: return _personalStep(state, notifier);
-      case 1: return _skillsStep(state, notifier);
+      case 0: return _personalStep(state, notifier, context);
+      case 1: return _skillsStep(state, notifier, context);
       case 2: return _journeyStep(state, notifier, context);
-      case 3: return _interestsStep(state, notifier);
+      case 3: return _interestsStep(state, notifier, context);
       default: return const SizedBox();
     }
   }
 
-  Widget _personalStep(OnboardingState state, OnboardingController n) {
+  Widget _personalStep(OnboardingState state, OnboardingController n, BuildContext context) {
     if (_nameCtrl.text.isEmpty && state.name.isNotEmpty) _nameCtrl.text = state.name;
     if (_emailCtrl.text.isEmpty && state.email.isNotEmpty) _emailCtrl.text = state.email;
     return Column(children: [
-      _field(_nameCtrl, 'Full Name', 'Jane Doe',
+      _field(context, _nameCtrl, 'Full Name', 'Jane Doe',
           Icons.person_outline_rounded, n.updateName),
       const SizedBox(height: 14),
-      _field(_emailCtrl, 'Email Address', 'you@example.com',
+      _field(context, _emailCtrl, 'Email Address', 'you@example.com',
           Icons.mail_outline_rounded, n.updateEmail,
           keyboard: TextInputType.emailAddress),
     ]);
   }
 
-  Widget _skillsStep(OnboardingState state, OnboardingController n) {
+  Widget _skillsStep(OnboardingState state, OnboardingController n, BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _chipInput(_skillCtrl, 'e.g. Flutter, Python, Design…',
+      _chipInput(context, _skillCtrl, 'e.g. Flutter, Python, Design…',
           Icons.code_rounded, () {
         final v = _skillCtrl.text.trim();
         if (v.isNotEmpty) { n.addSkill(v); _skillCtrl.clear(); }
@@ -307,7 +325,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       if (state.skills.isNotEmpty) ...[
         Text('Added',
             style: GoogleFonts.dmSans(
-                fontSize: 12, color: AppTheme.textMuted,
+                fontSize: 12, color: AppTheme.textMutedOf(context),
                 fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         Wrap(
@@ -317,14 +335,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               .toList(),
         ),
       ] else
-        _emptyHint('Add skills like "Flutter", "UI Design", "Python"…'),
+        _emptyHint('Add skills like "Flutter", "UI Design", "Python"…', context),
     ]);
   }
 
-  Widget _journeyStep(
-      OnboardingState state, OnboardingController n, BuildContext ctx) {
+  Widget _journeyStep(OnboardingState state, OnboardingController n, BuildContext ctx) {
     return Column(children: [
       _subSection(
+        context: ctx,
         title: 'Experience',
         icon: Icons.work_outline_rounded,
         color: AppTheme.primary,
@@ -332,15 +350,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         items: state.experience.isEmpty
             ? null
             : state.experience.asMap().entries
-                .map((e) => _record(
-                      e.value.role,
+                .map((e) => _record(ctx, e.value.role,
                       '${e.value.company} · ${e.value.duration}',
-                      () => n.removeExperience(e.key),
-                    ))
+                      () => n.removeExperience(e.key)))
                 .toList(),
       ),
       const SizedBox(height: 14),
       _subSection(
+        context: ctx,
         title: 'Education',
         icon: Icons.school_outlined,
         color: AppTheme.accent,
@@ -348,19 +365,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         items: state.education.isEmpty
             ? null
             : state.education.asMap().entries
-                .map((e) => _record(
-                      e.value.degree,
+                .map((e) => _record(ctx, e.value.degree,
                       '${e.value.institution} · ${e.value.year}',
-                      () => n.removeEducation(e.key),
-                    ))
+                      () => n.removeEducation(e.key)))
                 .toList(),
       ),
     ]);
   }
 
-  Widget _interestsStep(OnboardingState state, OnboardingController n) {
+  Widget _interestsStep(OnboardingState state, OnboardingController n, BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _chipInput(_interestCtrl, 'e.g. Photography, Gaming…',
+      _chipInput(context, _interestCtrl, 'e.g. Photography, Gaming…',
           Icons.auto_awesome_outlined, () {
         final v = _interestCtrl.text.trim();
         if (v.isNotEmpty) { n.addInterest(v); _interestCtrl.clear(); }
@@ -369,8 +384,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       if (state.interests.isNotEmpty) ...[
         Text('Added',
             style: GoogleFonts.dmSans(
-                fontSize: 12,
-                color: AppTheme.textMuted,
+                fontSize: 12, color: AppTheme.textMutedOf(context),
                 fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         Wrap(
@@ -381,11 +395,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               .toList(),
         ),
       ] else
-        _emptyHint('Add things you\'re passionate about'),
+        _emptyHint('Add things you\'re passionate about', context),
     ]);
   }
 
+
   Widget _field(
+    BuildContext context,
     TextEditingController ctrl,
     String label,
     String hint,
@@ -397,16 +413,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       controller: ctrl,
       onChanged: onChange,
       keyboardType: keyboard,
-      style: GoogleFonts.dmSans(color: AppTheme.textPrimary, fontSize: 15),
+      style: GoogleFonts.dmSans(color: AppTheme.textPrimaryOf(context), fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, size: 18, color: AppTheme.textMuted),
+        prefixIcon: Icon(icon, size: 18, color: AppTheme.textMutedOf(context)),
       ),
     );
   }
 
   Widget _chipInput(
+    BuildContext context,
     TextEditingController ctrl,
     String hint,
     IconData icon,
@@ -417,10 +434,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: TextField(
           controller: ctrl,
           onSubmitted: (_) => onAdd(),
-          style: GoogleFonts.dmSans(color: AppTheme.textPrimary, fontSize: 14),
+          style: GoogleFonts.dmSans(color: AppTheme.textPrimaryOf(context), fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, size: 17, color: AppTheme.textMuted),
+            prefixIcon: Icon(icon, size: 17, color: AppTheme.textMutedOf(context)),
           ),
         ),
       ),
@@ -432,8 +449,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           decoration: BoxDecoration(
               color: AppTheme.primary,
               borderRadius: BorderRadius.circular(12)),
-          child: const Icon(Icons.add_rounded,
-              color: Color(0xFF0F0E0C), size: 20),
+          child: const Icon(Icons.add_rounded, color: Color(0xFF0F0E0C), size: 20),
         ),
       ),
     ]);
@@ -460,16 +476,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  Widget _emptyHint(String text) => Padding(
+  Widget _emptyHint(String text, BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 10),
     child: Text(text,
         style: GoogleFonts.dmSans(
             fontSize: 13,
-            color: AppTheme.textMuted,
+            color: AppTheme.textMutedOf(context),
             fontStyle: FontStyle.italic)),
   );
 
   Widget _subSection({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Color color,
@@ -478,9 +495,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.bgCard,
+        color: AppTheme.bgCardOf(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: AppTheme.borderOf(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,13 +518,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   style: GoogleFonts.dmSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.textSecondary)),
+                      color: AppTheme.textSecondaryOf(context))),
               const Spacer(),
               GestureDetector(
                 onTap: onAdd,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(8),
@@ -528,7 +544,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Padding(
             padding: const EdgeInsets.all(14),
             child: items == null || items.isEmpty
-                ? _emptyHint('Nothing added yet')
+                ? _emptyHint('Nothing added yet', context)
                 : Column(children: items),
           ),
         ],
@@ -536,14 +552,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  Widget _record(String title, String sub, VoidCallback onDel) {
+  Widget _record(BuildContext context, String title, String sub, VoidCallback onDel) {
     return Container(
       margin: const EdgeInsets.only(bottom: 7),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: AppTheme.bgBase,
+        color: AppTheme.bgBaseOf(context),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: AppTheme.borderOf(context)),
       ),
       child: Row(children: [
         Expanded(
@@ -552,10 +568,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 style: GoogleFonts.dmSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary)),
+                    color: AppTheme.textPrimaryOf(context))),
             Text(sub,
                 style: GoogleFonts.dmSans(
-                    fontSize: 11, color: AppTheme.textMuted)),
+                    fontSize: 11, color: AppTheme.textMutedOf(context))),
           ]),
         ),
         GestureDetector(
@@ -573,10 +589,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'Add Experience',
       color: AppTheme.primary,
       fields: [
-        _sf(r, 'Role', Icons.badge_outlined),
-        _sf(c, 'Company', Icons.business_outlined),
-        _sf(d, 'Duration', Icons.calendar_today_outlined, hint: 'e.g. Jan 2022 – Present'),
-        _sf(desc, 'Description (optional)', Icons.notes_outlined, lines: 2),
+        _sf(ctx, r, 'Role', Icons.badge_outlined),
+        _sf(ctx, c, 'Company', Icons.business_outlined),
+        _sf(ctx, d, 'Duration', Icons.calendar_today_outlined, hint: 'e.g. Jan 2022 – Present'),
+        _sf(ctx, desc, 'Description (optional)', Icons.notes_outlined, lines: 2),
       ],
       onAdd: () {
         if (r.text.isNotEmpty && c.text.isNotEmpty && d.text.isNotEmpty) {
@@ -599,10 +615,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       title: 'Add Education',
       color: AppTheme.accent,
       fields: [
-        _sf(d, 'Degree', Icons.school_outlined),
-        _sf(i, 'Institution', Icons.location_city_outlined),
-        _sf(y, 'Year', Icons.calendar_today_outlined),
-        _sf(g, 'Grade / GPA (optional)', Icons.grade_outlined),
+        _sf(ctx, d, 'Degree', Icons.school_outlined),
+        _sf(ctx, i, 'Institution', Icons.location_city_outlined),
+        _sf(ctx, y, 'Year', Icons.calendar_today_outlined),
+        _sf(ctx, g, 'Grade / GPA (optional)', Icons.grade_outlined),
       ],
       onAdd: () {
         if (d.text.isNotEmpty && i.text.isNotEmpty && y.text.isNotEmpty) {
@@ -628,7 +644,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     showModalBottomSheet(
       context: ctx,
       isScrollControlled: true,
-      backgroundColor: AppTheme.bgSurface,
+      backgroundColor: AppTheme.bgSurfaceOf(ctx),
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (bCtx) => Padding(
@@ -642,14 +658,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Container(
                 width: 36, height: 4,
                 decoration: BoxDecoration(
-                    color: AppTheme.border,
+                    color: AppTheme.borderOf(ctx),
                     borderRadius: BorderRadius.circular(2)),
               ),
             ),
             const SizedBox(height: 16),
             Text(title,
                 style: GoogleFonts.dmSerifDisplay(
-                    fontSize: 22, color: AppTheme.textPrimary)),
+                    fontSize: 22, color: AppTheme.textPrimaryOf(ctx))),
             const SizedBox(height: 16),
             ...fields.expand((f) => [f, const SizedBox(height: 12)]).toList()
               ..removeLast(),
@@ -659,8 +675,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: Container(
                 height: 50,
                 decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(12)),
+                    color: color, borderRadius: BorderRadius.circular(12)),
                 child: Center(
                   child: Text('Add',
                       style: GoogleFonts.dmSans(
@@ -676,16 +691,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  Widget _sf(TextEditingController ctrl, String label, IconData icon,
+  Widget _sf(BuildContext context, TextEditingController ctrl, String label, IconData icon,
       {String? hint, int lines = 1}) {
     return TextField(
       controller: ctrl,
       maxLines: lines,
-      style: GoogleFonts.dmSans(color: AppTheme.textPrimary, fontSize: 14),
+      style: GoogleFonts.dmSans(color: AppTheme.textPrimaryOf(context), fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: Icon(icon, size: 16, color: AppTheme.textMuted),
+        prefixIcon: Icon(icon, size: 16, color: AppTheme.textMutedOf(context)),
       ),
     );
   }
