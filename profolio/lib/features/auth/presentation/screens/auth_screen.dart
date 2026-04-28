@@ -135,7 +135,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       backgroundColor: bgBase,
       body: Stack(
         children: [
-          // ── Animated glowing orbs ──────────────────────────────────
           AnimatedBuilder(
             animation: _pulse,
             builder: (_, __) => Stack(children: [
@@ -201,10 +200,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                     children: [
                       const SizedBox(height: 40),
 
-                      // ── Top bar: Brand + Theme Toggle ──────────────
                       Row(
                         children: [
-                          // Brand icon
                           Container(
                             width: 42,
                             height: 42,
@@ -231,7 +228,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                               style: GoogleFonts.dmSerifDisplay(
                                   fontSize: 22, color: textPrimary)),
                           const Spacer(),
-                          // Theme toggle
                           GestureDetector(
                             onTap: () => ref.read(themeModeProvider.notifier).toggle(),
                             child: AnimatedContainer(
@@ -274,7 +270,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
                       const SizedBox(height: 44),
 
-                      // ── Headline ───────────────────────────────────
+                      
                       Text(
                         _isLogin ? 'Welcome\nback.' : 'Build your\nstory.',
                         style: GoogleFonts.dmSerifDisplay(
@@ -294,7 +290,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
                       const SizedBox(height: 36),
 
-                      // ── Glass-morphism card ────────────────────────
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
@@ -380,7 +375,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
                               const SizedBox(height: 24),
 
-                              // Primary CTA
                               _primaryButton(
                                 label: _isLogin ? 'Sign In' : 'Create Account',
                                 onTap: loading ? null : _submit,
@@ -393,7 +387,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
                       const SizedBox(height: 28),
 
-                      // ── Toggle sign-in / sign-up ───────────────────
                       Center(
                         child: Wrap(
                           alignment: WrapAlignment.center,
@@ -440,7 +433,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     );
   }
 
-  // ── Widgets ─────────────────────────────────────────────────────────────
 
   Widget _field({
     required TextEditingController ctrl,

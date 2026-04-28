@@ -59,13 +59,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             body: SafeArea(
               child: Column(
                 children: [
-                  // ── Header ─────────────────────────────────────────────
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Top row
                         Row(children: [
                           if (step > 0)
                             GestureDetector(
@@ -117,7 +115,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
                         const SizedBox(height: 20),
 
-                        // Progress
+                        
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
@@ -131,7 +129,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
                         const SizedBox(height: 18),
 
-                        // Step title
                         Row(children: [
                           Container(
                             padding: const EdgeInsets.all(8),
@@ -164,7 +161,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                   ),
 
-                  // ── Content ───────────────────────────────────────────
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
@@ -172,7 +168,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                   ),
 
-                  // ── Error ─────────────────────────────────────────────
                   if (state.error != null)
                     Container(
                       margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
@@ -200,7 +195,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ]),
                     ),
 
-                  // ── CTA ───────────────────────────────────────────────
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                     child: GestureDetector(
@@ -273,7 +267,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  // ── Step builders ────────────────────────────────────────────────────────
 
   Widget _buildStep(
     int step,
@@ -391,8 +384,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         _emptyHint('Add things you\'re passionate about'),
     ]);
   }
-
-  // ── Helpers ──────────────────────────────────────────────────────────────
 
   Widget _field(
     TextEditingController ctrl,

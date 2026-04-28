@@ -45,9 +45,6 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  VIEW
-// ═══════════════════════════════════════════════════════════════════
 class _ViewProfile extends ConsumerWidget {
   final UserProfile profile;
   const _ViewProfile({required this.profile});
@@ -71,7 +68,6 @@ class _ViewProfile extends ConsumerWidget {
             elevation: 0,
             automaticallyImplyLeading: false,
             actions: [
-              // Theme toggle
               GestureDetector(
                 onTap: () => ref.read(themeModeProvider.notifier).toggle(),
                 child: Container(
@@ -108,7 +104,6 @@ class _ViewProfile extends ConsumerWidget {
             ),
           ),
 
-          // Stats bar
           SliverToBoxAdapter(
             child: Container(
               margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -133,7 +128,6 @@ class _ViewProfile extends ConsumerWidget {
             ),
           ),
 
-          // Content
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
             sliver: SliverList(
@@ -234,7 +228,6 @@ class _HeroHeader extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Warm glow
           Positioned(
             top: -60,
             right: -40,
@@ -257,7 +250,6 @@ class _HeroHeader extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Avatar
                 Container(
                   width: 76,
                   height: 76,
@@ -322,10 +314,6 @@ class _HeroHeader extends StatelessWidget {
     );
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════
-//  SHARED COMPONENTS
-// ═══════════════════════════════════════════════════════════════════
 
 class _Section extends StatelessWidget {
   final String title;
@@ -568,9 +556,6 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  EDIT PROFILE
-// ═══════════════════════════════════════════════════════════════════
 class _EditProfile extends ConsumerStatefulWidget {
   final UserProfile profile;
   final String userId;

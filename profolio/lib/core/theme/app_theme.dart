@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// ── Theme mode provider ───────────────────────────────────────────────
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
   (ref) => ThemeModeNotifier(),
 );
@@ -17,9 +16,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   bool get isDark => state == ThemeMode.dark;
 }
 
-// ── Theme data ────────────────────────────────────────────────────────
 class AppTheme {
-  // ── Brand palette (shared) ────────────────────────────────────────
   static const Color primary     = Color(0xFFE8A838);
   static const Color primaryDark = Color(0xFFC8861A);
   static const Color primaryGlow = Color(0xFFF5C462);
@@ -29,7 +26,6 @@ class AppTheme {
   static const Color warning     = Color(0xFFFFD166);
   static const Color error       = Color(0xFFEF6461);
 
-  // ── Dark palette ──────────────────────────────────────────────────
   static const Color bgBase     = Color(0xFF0F0E0C);
   static const Color bgSurface  = Color(0xFF181613);
   static const Color bgCard     = Color(0xFF211E19);
@@ -41,7 +37,6 @@ class AppTheme {
   static const Color textSecondary = Color(0xFFB8A898);
   static const Color textMuted     = Color(0xFF7A6E62);
 
-  // ── Light palette ─────────────────────────────────────────────────
   static const Color lightBgBase     = Color(0xFFF8F6F2);
   static const Color lightBgSurface  = Color(0xFFFFFFFF);
   static const Color lightBgCard     = Color(0xFFFFFFFF);
@@ -53,7 +48,6 @@ class AppTheme {
   static const Color lightTextSecondary = Color(0xFF6B5D4F);
   static const Color lightTextMuted     = Color(0xFFA09080);
 
-  // ── Context-aware getters ─────────────────────────────────────────
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
@@ -78,7 +72,6 @@ class AppTheme {
   static Color onPrimaryOf(BuildContext context) =>
       const Color(0xFF0F0E0C);
 
-  // ── DARK THEME ────────────────────────────────────────────────────
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -135,7 +128,6 @@ class AppTheme {
     );
   }
 
-  // ── LIGHT THEME ───────────────────────────────────────────────────
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -193,7 +185,6 @@ class AppTheme {
     );
   }
 
-  // ── Shared builders ───────────────────────────────────────────────
   static TextTheme _buildTextTheme(Color tp, Color ts, Color tm) => TextTheme(
     displayLarge: GoogleFonts.dmSerifDisplay(fontSize: 40, color: tp),
     displayMedium: GoogleFonts.dmSerifDisplay(fontSize: 32, color: tp),

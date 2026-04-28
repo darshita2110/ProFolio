@@ -27,7 +27,6 @@ class ProFolioApp extends ConsumerWidget {
     final goRouter = ref.watch(appRouterProvider);
     final themeMode = ref.watch(themeModeProvider);
 
-    // Update system UI overlay based on theme
     final isDark = themeMode == ThemeMode.dark;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

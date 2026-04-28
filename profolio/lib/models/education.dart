@@ -11,7 +11,6 @@ class Education {
     this.grade,
   });
 
-  /// Create Education from JSON
   factory Education.fromJson(Map<String, dynamic> json) {
     return Education(
       degree: json['degree'] as String? ?? '',
@@ -21,7 +20,6 @@ class Education {
     );
   }
 
-  /// Convert Education to JSON
   Map<String, dynamic> toJson() {
     return {
       'degree': degree,
@@ -31,7 +29,6 @@ class Education {
     };
   }
 
-  /// Create a copy of Education with modified fields
   Education copyWith({
     String? degree,
     String? institution,
