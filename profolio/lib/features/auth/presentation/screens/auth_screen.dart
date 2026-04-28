@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:profolio/core/routing/app_router.dart';
 import 'package:profolio/core/theme/app_theme.dart';
+import 'package:profolio/core/utils/password_validator.dart';
 import 'package:profolio/features/auth/application/auth_controller.dart';
 import 'package:profolio/core/providers/firebase_providers.dart';
 
@@ -31,6 +32,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
   bool _isLogin = true;
   bool _obscure = true;
+  String _password = '';
 
   @override
   void initState() {
@@ -47,6 +49,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     )..repeat(reverse: true);
     _pulse = Tween<double>(begin: 0.08, end: 0.18)
         .animate(CurvedAnimation(parent: _pulseAnim, curve: Curves.easeInOut));
+
+    _passwordCtrl.addListener(() {
+      setState(() => _password = _passwordCtrl.text);
+    });
   }
 
   @override
@@ -68,12 +74,15 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
   String? _validatePassword(String? v) {
     if (v == null || v.isEmpty) return 'Password is required';
-    if (v.length < 6) return 'Minimum 6 characters';
+    if (!PasswordValidator.isStrong(v)) {
+      return 'Password must meet all requirements';
+    }
     return null;
   }
 
   String? _validateName(String? v) {
     if (v == null || v.isEmpty) return 'Name is required';
+    if (v.length < 2) return 'Name must be at least 2 characters';
     return null;
   }
 
@@ -270,7 +279,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
                       const SizedBox(height: 44),
 
-                      
                       Text(
                         _isLogin ? 'Welcome\nback.' : 'Build your\nstory.',
                         style: GoogleFonts.dmSerifDisplay(
@@ -356,6 +364,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                                 ),
                               ),
 
+                              // Password Strength Indicator (signup only)
+                              if (!_isLogin && _password.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                _buildPasswordStrengthIndicator(),
+                              ],
+
                               if (_isLogin) ...[
                                 const SizedBox(height: 10),
                                 Align(
@@ -433,6 +447,141 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     );
   }
 
+  Widget _buildPasswordStrengthIndicator() {
+    final strength = PasswordValidator.calculateStrength(_password);
+    final color = _getStrengthColor(strength);
+    final label = _getStrengthLabel(strength);
+    final percentage = _getStrengthPercentage(strength);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Password Strength',
+              style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+            Text(
+              label,
+              style: GoogleFonts.dmSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: percentage,
+            minHeight: 6,
+            backgroundColor: AppTheme.bgCardOf(context),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _buildRequirementsList(),
+      ],
+    );
+  }
+
+  Widget _buildRequirementsList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _requirementRow(
+          'Min 8 characters',
+          PasswordValidator.hasMinLength(_password),
+        ),
+        const SizedBox(height: 6),
+        _requirementRow(
+          'Uppercase letter (A-Z)',
+          PasswordValidator.hasUppercase(_password),
+        ),
+        const SizedBox(height: 6),
+        _requirementRow(
+          'Lowercase letter (a-z)',
+          PasswordValidator.hasLowercase(_password),
+        ),
+        const SizedBox(height: 6),
+        _requirementRow(
+          'Number (0-9)',
+          PasswordValidator.hasNumber(_password),
+        ),
+        const SizedBox(height: 6),
+        _requirementRow(
+          'Special character (!@#...)',
+          PasswordValidator.hasSpecialChar(_password),
+        ),
+      ],
+    );
+  }
+
+  Widget _requirementRow(String text, bool met) {
+    return Row(
+      children: [
+        Icon(
+          met ? Icons.check_circle : Icons.circle_outlined,
+          size: 16,
+          color: met ? Colors.green : AppTheme.borderOf(context),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: GoogleFonts.dmSans(
+            fontSize: 12,
+            color: met
+                ? Colors.green
+                : AppTheme.textMutedOf(context),
+            fontWeight: met ? FontWeight.w500 : FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getStrengthColor(PasswordStrength strength) {
+    switch (strength) {
+      case PasswordStrength.weak:
+        return Colors.red;
+      case PasswordStrength.fair:
+        return Colors.orange;
+      case PasswordStrength.good:
+        return Colors.amber;
+      case PasswordStrength.strong:
+        return Colors.green;
+    }
+  }
+
+  String _getStrengthLabel(PasswordStrength strength) {
+    switch (strength) {
+      case PasswordStrength.weak:
+        return 'Weak';
+      case PasswordStrength.fair:
+        return 'Fair';
+      case PasswordStrength.good:
+        return 'Good';
+      case PasswordStrength.strong:
+        return 'Strong';
+    }
+  }
+
+  double _getStrengthPercentage(PasswordStrength strength) {
+    switch (strength) {
+      case PasswordStrength.weak:
+        return 0.25;
+      case PasswordStrength.fair:
+        return 0.5;
+      case PasswordStrength.good:
+        return 0.75;
+      case PasswordStrength.strong:
+        return 1.0;
+    }
+  }
 
   Widget _field({
     required TextEditingController ctrl,
