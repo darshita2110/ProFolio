@@ -6,14 +6,6 @@ ProFolio lets users create and manage a personal professional profile — captur
 
 ---
 
-## Screenshots
-
-| Auth | Onboarding | Profile |
-|------|------------|---------|
-| Animated sign-in / sign-up with glassmorphism card | 4-step guided onboarding flow | Sliver hero header with stats bar |
-
----
-
 ## Features
 
 - **Authentication** — Email/password sign-up, sign-in, and password reset via Firebase Auth
